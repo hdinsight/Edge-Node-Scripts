@@ -21,7 +21,7 @@ apt-get -y -qq install sshpass
 echo "Copying configs and cluster resources local"
 tmpFilePath=~/tmpConfigs
 mkdir -p $tmpFilePath
-RESOURCEPATHS=(/etc/hadoop/conf /etc/hive/conf /var/lib/ambari-server/resources/scripts)
+RESOURCEPATHS=(/etc/hadoop/conf /etc/hive/conf /etc/hbase/conf /var/lib/ambari-server/resources/scripts)
 for path in "${RESOURCEPATHS[@]}"
 do
 	mkdir -p "$tmpFilePath/$path"
@@ -91,6 +91,7 @@ then
 	exit 1
 fi
 export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+echo "JAVA_HOME=$JAVA_HOME">>/etc/environment
 
 #Install WebWasb
 WEBWASB_TARFILE=webwasb-tomcat.tar.gz
