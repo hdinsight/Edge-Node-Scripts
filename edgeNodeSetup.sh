@@ -28,6 +28,10 @@ do
 	sshpass -p $clusterSshPw scp -r $clusterSshUser@$clusterSshHostName:"$path/*" "$tmpFilePath$path"
 done
 
+#Copy hosts file from current active ambari host to edge node this should get us headnodehost address
+echo "Copy hosts file from current active ambari host to edge node this should get us headnodehost address"
+sshpass -p $clusterSshPw scp -r $clusterSshUser@$clusterSshHostName:"/etc/hosts" "$tmpFilePath/etc"
+
 #Get the decrypt utilities from the cluster
 wasbDecryptScript=$(grep "shellkeyprovider" -A1 ${tmpFilePath}/etc/hadoop/conf/core-site.xml | perl -ne "s/<\/?value>//g and print" | sed 's/^[ \t]*//;s/[ \t]*$//')
 decryptUtils=$(dirname $wasbDecryptScript)
@@ -64,6 +68,7 @@ rm -f $bitsFileName
 sshpass -p $clusterSshPw ssh $clusterSshUser@$clusterSshHostName "rm -rf ~/$tmpRemoteFolderName"
 
 #Copy all from the temp directory into the final directory
+echo "Copy all from the temp directory into the final directory"
 cp -rf $tmpFilePath/* /
 rm -rf $tmpFilePath
 
