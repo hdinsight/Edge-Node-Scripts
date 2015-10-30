@@ -64,6 +64,7 @@ rm -f $bitsFileName
 sshpass -p $clusterSshPw ssh $clusterSshUser@$clusterSshHostName "rm -rf ~/$tmpRemoteFolderName"
 
 #Copy all from the temp directory into the final directory
+echo "Copy all from the temp directory into the final directory"
 cp -rf $tmpFilePath/* /
 rm -rf $tmpFilePath
 
@@ -92,6 +93,31 @@ then
 fi
 export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
 echo "JAVA_HOME=$JAVA_HOME">>/etc/environment
+
+echo "Getting list of hosts from ambari"
+hostsJson=$(curl -u $clusterLogin:$clusterPassword -X GET https://$clustername.azurehdinsight.net/api/v1/clusters/$clustername/hosts)
+echo $hostsJson
+
+echo "Parsing list of hosts"
+hosts=$(echo $hostsJson | sed 's/\\\\\//\//g' | sed 's/[{}]//g' | awk -v k="text" '{n=split($0,a,","); for (i=1; i<=n; i++) print a[i]}' | sed 's/\"\:\"/\|/g' | sed 's/[\,]/ /g' | sed 's/\"//g' | grep -w 'host_name')
+echo $hosts
+
+echo "Extracting headnode0 and headnode1"
+headnode0=$(echo $hosts | grep -Eo '\bhn0-([^[:space:]]*)\b')
+headnode1=$(echo $hosts | grep -Eo '\bhn1-([^[:space:]]*)\b')
+echo "headnode0: $headnode0, headnode1: $headnode1"
+
+echo "Extracting headnode0 and headnode1 IP addresses"
+headnode0ip=$(dig +short $headnode0)
+headnode1ip=$(dig +short $headnode1)
+echo "headnode0 IP: $headnode0ip, headnode1 IP: $headnode1ip"
+
+#Add a new line to the end of hosts file
+echo "">>/etc/hosts
+
+echo "Adding headnode IP addresses"
+echo "$headnode0ip headnode0">>/etc/hosts
+echo "$headnode1ip headnode1">>/etc/hosts
 
 #Install WebWasb
 WEBWASB_TARFILE=webwasb-tomcat.tar.gz
