@@ -1,8 +1,11 @@
 #!/bin/bash
-vmName=$1
-clusterStorageAccount=$2
-clusterStorageAccountKey=$3
-clusterStorageContainer=$4
+sshUserName=$1
+vmName=$2
+clusterStorageAccount=$3
+clusterStorageAccountKey=$4
+clusterStorageContainer=$5
+
+su $sshUserName
 
 publicKeyName="$vmName-cluster-key.pub"
 publicKeyPath="$HOME/.ssh/$publicKeyName"
