@@ -7,6 +7,8 @@ clusterStorageContainer=$4
 privateKeyName="$vmName-cluster-key"
 privateKeyPath="$HOME/.ssh/$privateKeyName"
 
+echo "generating ssh key at $privateKeyPath"
+
 if [ -f $privateKeyPath ]
 then
 	echo "ssh key exists at $privateKeyPath"
