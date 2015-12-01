@@ -1,13 +1,14 @@
 #!/bin/bash
-vmName=$1
-clusterStorageAccount=$2
-clusterStorageAccountKey=$3
-clusterStorageContainer=$4
+sshUserName=$1
+vmName=$2
+clusterStorageAccount=$3
+clusterStorageAccountKey=$4
+clusterStorageContainer=$5
+
+su $sshUserName
 
 privateKeyName="cluster-key"
-privateKeyDir="/var/lib/hdiapp"
-mkdir -p $privateKeyDir
-privateKeyPath="$privateKeyDir/$privateKeyName"
+privateKeyPath="$HOME/.ssh/$privateKeyName"
 
 echo "generating ssh key at $privateKeyPath"
 
