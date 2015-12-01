@@ -4,8 +4,10 @@ clusterStorageAccount=$2
 clusterStorageAccountKey=$3
 clusterStorageContainer=$4
 
-privateKeyName="$vmName-cluster-key"
-privateKeyPath="$HOME/.ssh/$privateKeyName"
+privateKeyName="cluster-key"
+privateKeyDir="/var/lib/hdiapp"
+mkdir -p $privateKeyDir
+privateKeyPath="$privateKeyDir/$privateKeyName"
 
 echo "generating ssh key at $privateKeyPath"
 
@@ -18,8 +20,6 @@ fi
 publicKeyName="$privateKeyName.pub"
 publicKeyPath="$privateKeyPath.pub"
 
-
-
 sudo apt-get -y -qq install python-pip
 sudo pip install azure-storage
 
@@ -27,5 +27,5 @@ python -c "
 from azure.storage.blob import BlobService
 blob_service=BlobService('$clusterStorageAccount', '$clusterStorageAccountKey')
 blob_service.create_container('$clusterStorageContainer')
-blob_service.put_block_blob_from_path('$clusterStorageContainer', '$publicKeyName','$publicKeyPath', max_connections=5)
+blob_service.put_block_blob_from_path('$clusterStorageContainer', '$vmName-$publicKeyName','$publicKeyPath', max_connections=5)
 "
