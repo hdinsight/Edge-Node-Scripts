@@ -5,10 +5,8 @@ clusterStorageAccount=$3
 clusterStorageAccountKey=$4
 clusterStorageContainer=$5
 
-su $sshUserName
-
 privateKeyName="cluster-key"
-privateKeyPath="$HOME/.ssh/$privateKeyName"
+eval privateKeyPath=~$sshUserName/.ssh/$privateKeyName
 
 echo "generating ssh key at $privateKeyPath"
 
