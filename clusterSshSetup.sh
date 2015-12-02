@@ -5,10 +5,10 @@ clusterStorageAccount=$3
 clusterStorageAccountKey=$4
 clusterStorageContainer=$5
 
-su $sshUserName
+eval sshUserHomeDir=~$sshUserName
 
 publicKeyName="$vmName-cluster-key.pub"
-publicKeyPath="$HOME/.ssh/$publicKeyName"
+publicKeyPath="$sshUserHomeDir/.ssh/$publicKeyName"
 
 if [ -f $publicKeyPath ]
 then
@@ -22,6 +22,6 @@ from azure.storage.blob import BlobService
 blob_service=BlobService('$clusterStorageAccount', '$clusterStorageAccountKey')
 blob_service.get_blob_to_path('$clusterStorageContainer', '$publicKeyName','$publicKeyPath', max_connections=5)
 "
-    cat $publicKeyPath >> ~/.ssh/authorized_keys
+    cat $publicKeyPath >> $sshUserHomeDir/.ssh/authorized_keys
 fi
 
