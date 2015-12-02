@@ -14,7 +14,7 @@ if [ -f $privateKeyPath ]
 then
 	echo "ssh key exists at $privateKeyPath"
 else
-	su $sshUserName -c ssh-keygen -t rsa -f $privateKeyPath -N '' 
+	su $sshUserName -c "ssh-keygen -t rsa -f $privateKeyPath -N ''" 
 fi
 publicKeyName="$privateKeyName.pub"
 publicKeyPath="$privateKeyPath.pub"
