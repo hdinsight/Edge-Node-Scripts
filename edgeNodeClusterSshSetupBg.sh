@@ -12,6 +12,6 @@ ssh-keyscan -H $sshUserName >> ~/.ssh/known_hosts
 fi
 
 sudo apt-get install autossh
-autossh -f -i $privateKeyPath $clusterSshHostName
+autossh -i $privateKeyPath $clusterSshHostName
 
 scp -i $privateKeyPath $privateKeyPath $clusterSshHostName:~/.ssh/$privateKeyName
