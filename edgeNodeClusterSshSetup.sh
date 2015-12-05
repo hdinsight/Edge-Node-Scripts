@@ -1,12 +1,15 @@
 #!/bin/bash
 sshUserName=$1
 vmName=$2
-clusterStorageAccount=$3
-clusterStorageAccountKey=$4
-clusterStorageContainer=$5
+clusterName=$3
+clusterStorageAccount=$4
+clusterStorageAccountKey=$5
+clusterStorageContainer=$6
 
-privateKeyName="cluster-key"
-eval privateKeyPath=~$sshUserName/.ssh/$privateKeyName
+eval sshUserHomeDir=~$sshUserName
+
+privateKeyName="$vmName-cluster-key"
+privateKeyPath=$sshUserHomeDir/.ssh/$privateKeyName
 
 echo "generating ssh key at $privateKeyPath"
 
@@ -26,5 +29,6 @@ python -c "
 from azure.storage.blob import BlobService
 blob_service=BlobService('$clusterStorageAccount', '$clusterStorageAccountKey')
 blob_service.create_container('$clusterStorageContainer')
-blob_service.put_block_blob_from_path('$clusterStorageContainer', '$vmName-$publicKeyName','$publicKeyPath', max_connections=5)
+blob_service.put_block_blob_from_path('$clusterStorageContainer', '$publicKeyName','$publicKeyPath', max_connections=5)
 "
+.\edgeNodeClusterSshSetupBg.sh $sshUserName $clusterName $privateKeyName $privateKeyPath &
