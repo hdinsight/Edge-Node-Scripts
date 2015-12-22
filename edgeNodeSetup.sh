@@ -6,8 +6,27 @@ clusterLogin=$5
 clusterPassword=$6
 customParameter=$7
 
+vmHostname=$(hostname)
+echo "VM hostname is $vmHostname. Doing DNS check..."
+
+#Doing DNS check...
+dnsCheckResult=$(host $vmHostname)
+echo "$dnsCheckResult"
+dnsRetryAttempt="0"
+dnsRetryMaxAttempt="3"
+pattern="Host $vmHostname not found*"
+while [[ "$dnsCheckResult" == $pattern ]] && [ $dnsRetryAttempt -lt $dnsRetryMaxAttempt ]
+do
+	echo "Sleeping for 20 sec"
+	sleep 20
+    dnsRetryAttempt=$[$dnsRetryAttempt+1]
+    dnsCheckResult=$(host $vmHostname)
+	echo "$dnsCheckResult"
+done
+
 clusterSshHostName="$clustername-ssh.azurehdinsight.net"
-echo "Adding cluster host to known hosts if not exist"
+echo "Adding cluster host ($clusterSshHostName) to known hosts if not exist"
+
 knownHostKey=$(ssh-keygen -H -F $clusterSshHostName 2>/dev/null)
 if [ -z "$knownHostKey" ]
 then
@@ -18,6 +37,28 @@ fi
 echo "Installing sshpass"
 apt-get -y -qq install sshpass
 
+
+function checkEmptyDirectoryAndExit
+{
+	echo "Checking if directory $1 is empty"
+	checkIfEmpty=$(ls -A $1)
+	if [ -z "$checkIfEmpty"]
+	then
+		echo "Directory $1 is empty. Failed to copy files. Aborting script installation." >&2
+		exit 1
+	fi
+}
+
+function checkFileExists
+{
+	echo "Checking if file $1 exists"
+	if [ ! -f "$1" ]
+	then
+		echo "File $1 does not exist. Aborting script installation." >&2
+		exit 1
+	fi
+}
+
 #Copying configs
 echo "Copying configs and cluster resources local"
 tmpFilePath=~/tmpConfigs
@@ -25,18 +66,23 @@ mkdir -p $tmpFilePath
 RESOURCEPATHS=(/etc/hadoop/conf /etc/hive/conf /etc/hbase/conf /var/lib/ambari-server/resources/scripts)
 for path in "${RESOURCEPATHS[@]}"
 do
+	echo "Copying directory $path"
 	mkdir -p "$tmpFilePath/$path"
 	sshpass -p $clusterSshPw scp -r $clusterSshUser@$clusterSshHostName:"$path/*" "$tmpFilePath$path"
+	
+	checkEmptyDirectoryAndExit "$tmpFilePath$path"
 done
 
 #Get the decrypt utilities from the cluster
 wasbDecryptScript=$(grep "shellkeyprovider" -A1 ${tmpFilePath}/etc/hadoop/conf/core-site.xml | perl -ne "s/<\/?value>//g and print" | sed 's/^[ \t]*//;s/[ \t]*$//')
+echo "WASB Decrypt Script $wasbDecryptScript"
 decryptUtils=$(dirname $wasbDecryptScript)
 echo "WASB Decrypt Utils being copied locally from $decryptUtils on the headnode"
 
 echo "Copying decrypt utilities for WASB storage"
 mkdir -p "$tmpFilePath/$decryptUtils"
 sshpass -p $clusterSshPw scp -r $clusterSshUser@$clusterSshHostName:"$decryptUtils/*" "$tmpFilePath$decryptUtils"
+checkEmptyDirectoryAndExit "$tmpFilePath$decryptUtils"
 
 #Get hadoop symbolic links from the cluster
 mkdir -p "$tmpFilePath/usr/bin"
@@ -55,7 +101,9 @@ sshpass -p $clusterSshPw ssh $clusterSshUser@$clusterSshHostName "tar -cvzf ~/$t
 #Copy the binaries
 echo "Copying binaries from headnode"
 sshpass -p $clusterSshPw scp $clusterSshUser@$clusterSshHostName:"~/$tmpRemoteFolderName/$bitsFileName" .
+checkFileExists $bitsFileName
 sshpass -p $clusterSshPw scp $clusterSshUser@$clusterSshHostName:"~/$tmpRemoteFolderName/$loggingBitsFileName" .
+checkFileExists $loggingBitsFileName
 #Unzip the binaries
 echo "Unzipping binaries"
 tar -xhzvf $bitsFileName -C /
