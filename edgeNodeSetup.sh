@@ -42,7 +42,7 @@ function checkEmptyDirectoryAndExit
 {
 	echo "Checking if directory $1 is empty"
 	checkIfEmpty=$(ls -A $1)
-	if [ -z "$checkIfEmpty"]
+	if [ -z "$checkIfEmpty" ]
 	then
 		echo "Directory $1 is empty. Failed to copy files. Aborting script installation." >&2
 		exit 1
@@ -101,9 +101,9 @@ sshpass -p $clusterSshPw ssh $clusterSshUser@$clusterSshHostName "tar -cvzf ~/$t
 #Copy the binaries
 echo "Copying binaries from headnode"
 sshpass -p $clusterSshPw scp $clusterSshUser@$clusterSshHostName:"~/$tmpRemoteFolderName/$bitsFileName" .
-checkFileExists $bitsFileName
+checkFileExists "$bitsFileName"
 sshpass -p $clusterSshPw scp $clusterSshUser@$clusterSshHostName:"~/$tmpRemoteFolderName/$loggingBitsFileName" .
-checkFileExists $loggingBitsFileName
+checkFileExists "$loggingBitsFileName"
 #Unzip the binaries
 echo "Unzipping binaries"
 tar -xhzvf $bitsFileName -C /
