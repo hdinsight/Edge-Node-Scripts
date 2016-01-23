@@ -9,34 +9,87 @@ customParameter=$7
 vmHostname=$(hostname)
 echo "VM hostname is $vmHostname. Doing DNS check..."
 
-#Doing DNS check...
-dnsCheckResult=$(host $vmHostname)
-echo "$dnsCheckResult"
-dnsRetryAttempt="0"
-dnsRetryMaxAttempt="3"
-pattern="Host $vmHostname not found*"
-while [[ "$dnsCheckResult" == $pattern ]] && [ $dnsRetryAttempt -lt $dnsRetryMaxAttempt ]
-do
-	echo "Sleeping for 20 sec"
-	sleep 20
-    dnsRetryAttempt=$[$dnsRetryAttempt+1]
-    dnsCheckResult=$(host $vmHostname)
+function checkDnsNameIsResolvable
+{
+	#Doing DNS check...
+	echo "Doing DNS check for name $1"
+	
+	dnsCheckResult=$(host $1)
 	echo "$dnsCheckResult"
-done
+	dnsRetryAttempt="0"
+	dnsRetryMaxAttempt="10"
+	pattern="Host $1 not found*"
+	while [[ "$dnsCheckResult" == $pattern ]] && [ $dnsRetryAttempt -lt $dnsRetryMaxAttempt ]
+	do
+		echo "Sleeping for 30 sec"
+		sleep 30
+		dnsRetryAttempt=$[$dnsRetryAttempt+1]
+		dnsCheckResult=$(host $1)
+		echo "$dnsCheckResult"
+	done
+	
+	dnsCheckResult=$(host $1)
+	if [[ "$dnsCheckResult" == $pattern ]]
+	then
+		echo "DNS name validation for $1 has failed. Terminating the script execution"
+		exit 1
+	else
+		echo "DNS name validation for name $1 completed. Result: $dnsCheckResult"
+	fi
+}
+
+echo "DNS check for edge VM $vmHostname"
+checkDnsNameIsResolvable "$vmHostname"
 
 clusterSshHostName="$clustername-ssh.azurehdinsight.net"
+
+echo "DNS check for cluster SSH DNS name $clusterSshHostName"
+checkDnsNameIsResolvable "$clusterSshHostName"
+
 echo "Adding cluster host ($clusterSshHostName) to known hosts if not exist"
 
+echo "Looking for cluster $clusterSshHostName SSH key in known_hosts file"
 knownHostKey=$(ssh-keygen -H -F $clusterSshHostName 2>/dev/null)
+hostKeyRetryAttempt="0"
+hostKeyRetryMaxAttempt="10"
+echo "ssh-keygen output: $knownHostKey"
+while [ -z "$knownHostKey" ] && [ $hostKeyRetryAttempt -lt $hostKeyRetryMaxAttempt ]
+do
+	echo "Retrieving public key for cluster SSH $clusterSshHostName..."
+	pubKey=$(ssh-keyscan -H $clusterSshHostName)
+	echo "Public key is: $pubKey"
+	echo "Saving public key to known_hosts"
+	echo "$pubKey" >> ~/.ssh/known_hosts
+	
+	knownHostKey=$(ssh-keygen -H -F $clusterSshHostName 2>/dev/null)
+	if [ -z "$knownHostKey" ]
+	then
+		echo "Host key was not found, sleeping for 30 sec"
+		sleep 30
+		hostKeyRetryAttempt=$[$hostKeyRetryAttempt+1]
+	fi
+done
+
 if [ -z "$knownHostKey" ]
 then
-ssh-keyscan -H $clusterSshHostName >> ~/.ssh/known_hosts
+	echo "Host key was not found, terminating the script"
+	exit 1
 fi
 
 #Get sshpass
 echo "Installing sshpass"
 apt-get -y -qq install sshpass
 
+echo "Verifying that SSH is working fine"
+sshResult=$(sshpass -p $clusterSshPw ssh $clusterSshUser@$clusterSshHostName echo "OK")
+echo "SSH verification result: $sshResult"
+if [ $sshResult == "OK" ]
+then
+	echo "SSH connection to cluster is working"
+else
+	echo "SSH connection to cluster is not working, terminating the script"
+	exit 1
+fi
 
 function checkEmptyDirectoryAndExit
 {
