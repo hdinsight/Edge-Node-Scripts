@@ -80,10 +80,11 @@ fi
 echo "Installing sshpass"
 apt-get -y -qq install sshpass
 
-export SSHPASS='$clusterSshPw'
+export SSHPASS=$clusterSshPw
+echo "SSHPASS=$SSHPASS"
 
 echo "Verifying that SSH is working fine"
-sshResult=$(sshpass -e ssh '$clusterSshUser@$clusterSshHostName' echo "OK")
+sshResult=$(sshpass -e ssh $clusterSshUser@$clusterSshHostName echo "OK")
 echo "SSH verification result: $sshResult"
 if [ $sshResult == "OK" ]
 then
@@ -123,7 +124,7 @@ for path in "${RESOURCEPATHS[@]}"
 do
 	echo "Copying directory $path"
 	mkdir -p "$tmpFilePath/$path"
-	sshpass -e scp -r '$clusterSshUser@$clusterSshHostName':"$path/*" "$tmpFilePath$path"
+	sshpass -e scp -r $clusterSshUser@$clusterSshHostName:"$path/*" "$tmpFilePath$path"
 	
 	checkEmptyDirectoryAndExit "$tmpFilePath$path"
 done
@@ -136,12 +137,12 @@ echo "WASB Decrypt Utils being copied locally from $decryptUtils on the headnode
 
 echo "Copying decrypt utilities for WASB storage"
 mkdir -p "$tmpFilePath/$decryptUtils"
-sshpass -e scp -r '$clusterSshUser@$clusterSshHostName':"$decryptUtils/*" "$tmpFilePath$decryptUtils"
+sshpass -e scp -r $clusterSshUser@$clusterSshHostName:"$decryptUtils/*" "$tmpFilePath$decryptUtils"
 checkEmptyDirectoryAndExit "$tmpFilePath$decryptUtils"
 
 #Get hadoop symbolic links from the cluster
 mkdir -p "$tmpFilePath/usr/bin"
-sshpass -e ssh '$clusterSshUser@$clusterSshHostName' "find /usr/bin -readable -lname '/usr/hdp/*' -exec test -e {} \; -print" | while read fileName ; do sshpass -e scp '$clusterSshUser@$clusterSshHostName':$fileName "$tmpFilePath$fileName" ; done
+sshpass -e ssh $clusterSshUser@$clusterSshHostName "find /usr/bin -readable -lname '/usr/hdp/*' -exec test -e {} \; -print" | while read fileName ; do sshpass -e scp $clusterSshUser@$clusterSshHostName:$fileName "$tmpFilePath$fileName" ; done
 
 #Get the hadoop binaries from the cluster
 binariesLocation=$(grep HADOOP_HOME "$tmpFilePath/usr/bin/hadoop" -m 1 | sed 's/.*:-//;s/\(.*\)hadoop}/\1/;s/\(.*\)\/.*/\1/')
@@ -150,14 +151,14 @@ echo "Zipping binaries on headnode"
 bitsFileName=hdpBits.tar.gz
 loggingBitsFileName=loggingBits.tar.gz
 tmpRemoteFolderName=tmpBits
-sshpass -e ssh '$clusterSshUser@$clusterSshHostName' "mkdir ~/$tmpRemoteFolderName"
-sshpass -e ssh '$clusterSshUser@$clusterSshHostName' "tar -cvzf ~/$tmpRemoteFolderName/$bitsFileName $binariesLocation &>/dev/null"
-sshpass -e ssh '$clusterSshUser@$clusterSshHostName' "tar -cvzf ~/$tmpRemoteFolderName/$loggingBitsFileName /usr/lib/hdinsight-logging &>/dev/null"
+sshpass -e ssh $clusterSshUser@$clusterSshHostName "mkdir ~/$tmpRemoteFolderName"
+sshpass -e ssh $clusterSshUser@$clusterSshHostName "tar -cvzf ~/$tmpRemoteFolderName/$bitsFileName $binariesLocation &>/dev/null"
+sshpass -e ssh $clusterSshUser@$clusterSshHostName "tar -cvzf ~/$tmpRemoteFolderName/$loggingBitsFileName /usr/lib/hdinsight-logging &>/dev/null"
 #Copy the binaries
 echo "Copying binaries from headnode"
-sshpass -e scp '$clusterSshUser@$clusterSshHostName':"~/$tmpRemoteFolderName/$bitsFileName" .
+sshpass -e scp $clusterSshUser@$clusterSshHostName:"~/$tmpRemoteFolderName/$bitsFileName" .
 checkFileExists "$bitsFileName"
-sshpass -e scp '$clusterSshUser@$clusterSshHostName':"~/$tmpRemoteFolderName/$loggingBitsFileName" .
+sshpass -e scp $clusterSshUser@$clusterSshHostName:"~/$tmpRemoteFolderName/$loggingBitsFileName" .
 checkFileExists "$loggingBitsFileName"
 #Unzip the binaries
 echo "Unzipping binaries"
@@ -165,7 +166,7 @@ tar -xhzvf $bitsFileName -C /
 tar -xhzvf $loggingBitsFileName -C /
 #Remove the temporary folders
 rm -f $bitsFileName
-sshpass -e ssh '$clusterSshUser@$clusterSshHostName' "rm -rf ~/$tmpRemoteFolderName"
+sshpass -e ssh $clusterSshUser@$clusterSshHostName "rm -rf ~/$tmpRemoteFolderName"
 
 #Copy all from the temp directory into the final directory
 echo "Copy all from the temp directory into the final directory"
