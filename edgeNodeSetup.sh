@@ -266,5 +266,5 @@ mkdir $APP_TEMP_INSTALLDIR
 wget $appInstallScriptUri -P $APP_TEMP_INSTALLDIR
 cd $APP_TEMP_INSTALLDIR 
 #Output the stdout and stderror to the app directory
-sudo -E bash $(basename "$appInstallScriptUri") '$clustername' '$clusterLogin' '$clusterPassword' '$customParameter' '$clusterSshUser' >output 2>error
+sudo -E bash $(basename "$appInstallScriptUri") "$clustername" "$clusterLogin" "$clusterPassword" "$customParameter" "$clusterSshUser" >output 2>error
 
