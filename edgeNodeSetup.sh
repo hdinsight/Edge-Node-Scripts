@@ -146,13 +146,15 @@ sshpass -e ssh $clusterSshUser@$clusterSshHostName "find /usr/bin -readable -lna
 
 #Get the hadoop binaries from the cluster
 binariesLocation=$(grep HADOOP_HOME "$tmpFilePath/usr/bin/hadoop" -m 1 | sed 's/.*:-//;s/\(.*\)hadoop}/\1/;s/\(.*\)\/.*/\1/')
+#For clients, get the current symlinks from the cluster
+currentSymlinks=$(sshpass -e ssh cask@dwapi2-ssh.azurehdinsight.net "find /usr/hdp/current -readable -lname '/usr/hdp/*' -exec test -e {} \; -print | tr '\n' ' '")
 #Zip the files
 echo "Zipping binaries on headnode"
 bitsFileName=hdpBits.tar.gz
 loggingBitsFileName=loggingBits.tar.gz
 tmpRemoteFolderName=tmpBits
 sshpass -e ssh $clusterSshUser@$clusterSshHostName "mkdir ~/$tmpRemoteFolderName"
-sshpass -e ssh $clusterSshUser@$clusterSshHostName "tar -cvzf ~/$tmpRemoteFolderName/$bitsFileName $binariesLocation &>/dev/null"
+sshpass -e ssh $clusterSshUser@$clusterSshHostName "tar -cvzf ~/$tmpRemoteFolderName/$bitsFileName $binariesLocation $currentSymlinks &>/dev/null"
 sshpass -e ssh $clusterSshUser@$clusterSshHostName "tar -cvzf ~/$tmpRemoteFolderName/$loggingBitsFileName /usr/lib/hdinsight-logging &>/dev/null"
 #Copy the binaries
 echo "Copying binaries from headnode"
