@@ -119,7 +119,7 @@ function checkFileExists
 echo "Copying configs and cluster resources local"
 tmpFilePath=~/tmpConfigs
 mkdir -p $tmpFilePath
-RESOURCEPATHS=(/etc/hadoop/conf /etc/hive/conf /etc/hbase/conf /var/lib/ambari-server/resources/scripts)
+RESOURCEPATHS=(/etc/hadoop/conf /etc/hive/conf /etc/hbase/conf /etc/tez/conf /var/lib/ambari-server/resources/scripts)
 for path in "${RESOURCEPATHS[@]}"
 do
 	echo "Copying directory $path"
