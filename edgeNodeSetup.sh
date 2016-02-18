@@ -147,7 +147,7 @@ sshpass -e ssh $clusterSshUser@$clusterSshHostName "find /usr/bin -readable -lna
 #Get the hadoop binaries from the cluster
 binariesLocation=$(grep HADOOP_HOME "$tmpFilePath/usr/bin/hadoop" -m 1 | sed 's/.*:-//;s/\(.*\)hadoop}/\1/;s/\(.*\)\/.*/\1/')
 #For clients, get the current symlinks from the cluster
-currentSymlinks=$(sshpass -e ssh cask@dwapi2-ssh.azurehdinsight.net "find /usr/hdp/current -readable -lname '/usr/hdp/*' -exec test -e {} \; -print | tr '\n' ' '")
+currentSymlinks=$(sshpass -e ssh $clusterSshUser@$clusterSshHostName "find /usr/hdp/current -readable -lname '/usr/hdp/*' -exec test -e {} \; -print | tr '\n' ' '")
 #Zip the files
 echo "Zipping binaries on headnode"
 bitsFileName=hdpBits.tar.gz
