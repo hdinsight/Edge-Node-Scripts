@@ -33,10 +33,7 @@ usage() {
 checkHostNameAndSetClusterName() {
     fullHostName=$(hostname -f)
     echo "fullHostName=$fullHostName"
-    if [[ $fullHostName != headnode0* && $fullHostName != hn0* ]]; then
-        echo "$fullHostName is not headnode 0. This script has to be run on headnode0."
-        exit 0
-    fi
+
     CLUSTERNAME=$(sed -n -e 's/.*\.\(.*\)-ssh.*/\1/p' <<< $fullHostName)
     if [ -z "$CLUSTERNAME" ]; then
         CLUSTERNAME=$(echo -e "import hdinsight_common.ClusterManifestParser as ClusterManifestParser\nprint ClusterManifestParser.parse_local_manifest().deployment.cluster_name" | python)
