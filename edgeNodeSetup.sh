@@ -81,10 +81,11 @@ echo "Installing sshpass"
 apt-get -y -qq install sshpass
 
 export SSHPASS=$clusterSshPw
-echo "SSHPASS=$SSHPASS"
+
+echo "SSH User=$clusterSshUser"
 
 echo "Verifying that SSH is working fine"
-sshResult=$(sshpass -e ssh $clusterSshUser@$clusterSshHostName echo "OK")
+sshResult=$(sshpass -e ssh "$clusterSshUser"@"$clusterSshHostName" echo "OK")
 echo "SSH verification result: $sshResult"
 if [ $sshResult == "OK" ]
 then
@@ -93,6 +94,12 @@ else
 	echo "SSH connection to cluster is not working, terminating the script"
 	exit 1
 fi
+
+echo "Installing NTP"
+apt-get -y -qq install ntp
+
+echo "Checking NTP"
+ntpq -p
 
 function checkEmptyDirectoryAndExit
 {
