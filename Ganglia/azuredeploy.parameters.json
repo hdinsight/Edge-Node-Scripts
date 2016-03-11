@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "value": "North Europe"
+        },
+        "clusterName": {
+            "value": "editme"
+        },
+        "clusterType": { 
+            "value": "hadoop"
+        },
+        "clusterStorageAccountName": {
+            "value": "editme"
+        },
+        "edgeNodeVhdStorageAccountName": {
+            "value": "editme"
+        },
+        "edgeNodeVirtualMachineName": {
+            "value": "editme"
+        },
+        "clusterLoginUserName": {
+            "value": "editme"
+        },
+        "clusterLoginPassword": {
+            "value": "editme"
+        },
+        "sshUserName": {
+            "value": "editme"
+        },
+        "sshPassword": {
+            "value": "editme"
+        }
+    }
+}
