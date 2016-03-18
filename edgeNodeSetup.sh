@@ -85,7 +85,7 @@ export SSHPASS=$clusterSshPw
 echo "SSH User=$clusterSshUser"
 
 echo "Verifying that SSH is working fine"
-sshResult=$(sshpass -e ssh "$clusterSshUser"@"$clusterSshHostName" echo "OK")
+sshResult=$(sshpass -e ssh -o StrictHostKeyChecking=no "$clusterSshUser"@"$clusterSshHostName" echo "OK")
 echo "SSH verification result: $sshResult"
 if [ $sshResult == "OK" ]
 then
