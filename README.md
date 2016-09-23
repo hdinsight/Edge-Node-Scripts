@@ -1,3 +1,8 @@
+# These Scripts are deprecated and not supported anymore.
+You can refer to new Application framework and approach:
+https://github.com/hdinsight/Iaas-Applications/tree/master/EmptyNode
+
+
 # Edge-Node-Scripts
 NOTE: This setup script for edge nodes is DEPRECATED and does not have support guarantees.
 This script will be removed by the end of 2016.
